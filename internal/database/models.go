@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"database/sql"
 )
 
 type User struct {
@@ -41,7 +42,7 @@ type Post struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Title       string
-	Description string
+	Description sql.NullString
 	PublishedAt time.Time
 	Url         string
 	FeedID      uuid.UUID
