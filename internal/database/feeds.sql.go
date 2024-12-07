@@ -86,15 +86,15 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 	return items, nil
 }
 
-const getNextFeedToFetch = `-- name: GetNextFeedToFetch :one
+const getNextFeedsToFetch = `-- name: GetNextFeedsToFetch :one
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 from feeds 
 ORDER BY last_fetched_at ASC NULLS FIRST
-LIMIT 1
+LIMIT $1
 `
 
-func (q *Queries) GetNextFeedToFetch(ctx context.Context) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, getNextFeedToFetch)
+func (q *Queries) GetNextFeedsToFetch(ctx context.Context, dollar_1 int32) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, getNextFeedsToFetch, dollar_1)
 	var i Feed
 	err := row.Scan(
 		&i.ID,
@@ -116,7 +116,7 @@ WHERE id = $1
 RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at
 `
 
-func (q *Queries) MarkFeedAsFetched(ctx context.Context, dollar_1 uuid.NullUUID) (Feed, error) {
+func (q *Queries) MarkFeedAsFetched(ctx context.Context, dollar_1 uuid.UUID) (Feed, error) {
 	row := q.db.QueryRowContext(ctx, markFeedAsFetched, dollar_1)
 	var i Feed
 	err := row.Scan(

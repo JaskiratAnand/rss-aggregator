@@ -7,11 +7,11 @@ RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at;
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 from feeds;
 
--- name: GetNextFeedToFetch :one
+-- name: GetNextFeedsToFetch :one
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 from feeds 
 ORDER BY last_fetched_at ASC NULLS FIRST
-LIMIT 1;
+LIMIT $1;
 
 -- name: MarkFeedAsFetched :one
 UPDATE feeds
