@@ -6,3 +6,6 @@ RETURNING id, created_at, updated_at, user_id, feed_id;
 
 -- name: GetFeedFollows :many
 SELECT id, created_at, updated_at, user_id, feed_id from feed_follows WHERE user_id = $1;
+
+-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows WHERE user_id = $1 AND feed_id = $2;
