@@ -7,7 +7,7 @@ RETURNING id, created_at, updated_at, name, url, user_id, last_fetched_at;
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 from feeds;
 
--- name: GetNextFeedsToFetch :one
+-- name: GetNextFeedsToFetch :many
 SELECT id, created_at, updated_at, name, url, user_id, last_fetched_at
 from feeds 
 ORDER BY last_fetched_at ASC NULLS FIRST
