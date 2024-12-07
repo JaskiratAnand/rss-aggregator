@@ -25,12 +25,13 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 	}
 
 	feed, err := apiCfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		Name:      params.Name,
-		Url:       params.URL,
-		UserID:    user.ID,
+		ID:            uuid.New(),
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
+		Name:          params.Name,
+		Url:           params.URL,
+		UserID:        user.ID,
+		LastFetchedAt: time.Now().UTC(),
 	})
 	if err != nil {
 		respondWithError(w, 400, fmt.Sprintf("Couldn't create feed: %v", err))

@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/JaskiratAnand/rss-aggregator/internal/database"
+	"github.com/google/uuid"
 )
 
 func startScraping(
@@ -14,7 +17,7 @@ func startScraping(
 	concurrency int,
 	timeBetweenRequest time.Duration,
 ) {
-	log.Printf("Scrapiing on %v goroutines every %s duration", concurrency, timeBetweenRequest)
+	log.Printf("Scraping on %v goroutines every %s duration", concurrency, timeBetweenRequest)
 
 	ticker := time.NewTicker(timeBetweenRequest)
 
@@ -24,7 +27,7 @@ func startScraping(
 			int32(concurrency),
 		)
 		if err != nil {
-			log.Println("error fetching feeds", err)
+			log.Println("Error fetching feeds", err)
 			continue
 		}
 
@@ -43,18 +46,45 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 
 	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
 	if err != nil {
-		log.Println("error marking feed as fetched: ", err)
+		log.Println("Error marking feed as fetched: ", err)
 		return
 	}
 
 	rssFeed, err := urlToFeed(feed.Url)
 	if err != nil {
-		log.Println("error fetching feed", err)
+		log.Println("Error fetching feed", err)
 		return
 	}
 
 	for _, item := range rssFeed.Channel.Items {
-		log.Println("Found post: ", item.Title)
+		description := sql.NullString{}
+		if item.Description != "" {
+			description.String = item.Description
+			description.Valid = true
+		}
+
+		pubDate, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			log.Println("Error parsing date:", err)
+			continue
+		}
+
+		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       item.Title,
+			Description: description,
+			PublishedAt: pubDate,
+			Url:         item.Link,
+			FeedID:      feed.ID,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value") {
+				continue
+			}
+			log.Println("error creating post", err)
+		}
 	}
 	log.Printf("Feed %s scraped, %v posts found: ", feed.Name, len(rssFeed.Channel.Items))
 }
